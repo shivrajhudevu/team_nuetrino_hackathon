@@ -23,6 +23,8 @@ public class ThreatOverlayActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        EikosAccessibilityService.isOverlayVisible = true;
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
@@ -164,6 +166,12 @@ public class ThreatOverlayActivity extends Activity {
             LinearLayout.LayoutParams.MATCH_PARENT, 2);
         divider.setLayoutParams(p);
         parent.addView(divider);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        EikosAccessibilityService.isOverlayVisible = false;
     }
 
     @Override

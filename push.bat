@@ -4,7 +4,7 @@ echo ==============================================
 echo Pushing to GitHub (Judge-Ready Version)...
 echo ==============================================
 git add .
-git commit -m "docs: professional judge-ready README with architecture and demo guide"
+git commit -m "feat: complete EIKOS v1.0 with Gemini Pro AI, multilingual support, and forensic overlay"
 git pull origin main --rebase
 git push origin main
 echo ==============================================

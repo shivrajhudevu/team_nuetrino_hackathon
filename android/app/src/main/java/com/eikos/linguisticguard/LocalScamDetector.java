@@ -91,94 +91,67 @@ public class LocalScamDetector {
         ScanResult result = new ScanResult();
         String lower = text.toLowerCase();
 
-        int score = 0;
-
-        // 1. Check multi-word scam patterns (English)
-        for (String[] pattern : SCAM_PATTERNS_EN) {
-            boolean allPresent = true;
-            for (String word : pattern) {
-                if (!lower.contains(word)) {
-                    allPresent = false;
-                    break;
-                }
-            }
-            if (allPresent) {
-                score += 45;
-                result.reasons.add("Scam pattern detected: " + String.join(" + ", pattern));
-                break;
-            }
-        }
-
-        // 2. Check Hindi patterns
-        for (String[] pattern : SCAM_PATTERNS_HI) {
-            boolean allPresent = true;
-            for (String word : pattern) {
-                if (!text.contains(word) && !lower.contains(word)) {
-                    allPresent = false;
-                    break;
-                }
-            }
-            if (allPresent) {
-                score += 45;
-                result.reasons.add("Hindi scam phrase detected");
-                break;
-            }
-        }
-
-        // 3. Check Kannada patterns
-        for (String[] pattern : SCAM_PATTERNS_KN) {
-            boolean allPresent = true;
-            for (String word : pattern) {
-                if (!text.contains(word)) {
-                    allPresent = false;
-                    break;
-                }
-            }
-            if (allPresent) {
-                score += 45;
-                result.reasons.add("Kannada scam phrase detected");
-                break;
-            }
-        }
-
-        // 4. Urgency boost
+        // 1. SEMANTIC INTENT ANALYSIS
+        boolean hasUrgency = false;
         for (String w : URGENCY_WORDS) {
-            if (lower.contains(w) || text.contains(w)) {
-                score += 20;
-                result.reasons.add("Urgency language: \"" + w + "\"");
-                break;
-            }
+            if (lower.contains(w)) { hasUrgency = true; break; }
         }
 
-        // 5. Threat boost
+        boolean hasThreat = false;
         for (String w : THREAT_WORDS) {
-            if (lower.contains(w) || text.contains(w)) {
-                score += 20;
-                result.reasons.add("Threat/intimidation language detected");
-                break;
-            }
+            if (lower.contains(w)) { hasThreat = true; break; }
         }
 
-        // 6. Reward trap boost
+        boolean hasReward = false;
         for (String w : REWARD_WORDS) {
-            if (lower.contains(w) || text.contains(w)) {
+            if (lower.contains(w)) { hasReward = true; break; }
+        }
+
+        // 2. SCORING (Intelligence Logic)
+        // Rule: A single keyword is NEVER enough. 
+        // We need (Keyword + Urgency) OR (Keyword + Threat) OR (Keyword + Link)
+        
+        int score = 0;
+        // Base points for high-risk topics
+        Set<String> TOPICS = new HashSet<>(Arrays.asList("otp", "upi", "pin", "kyc", "electricity", "bill", "refund", "bank", "account"));
+        boolean topicFound = false;
+        for (String t : TOPICS) {
+            if (lower.contains(t)) {
                 score += 15;
-                result.reasons.add("Reward trap language detected");
+                topicFound = true;
+                result.reasons.add("Subject: " + t);
                 break;
             }
         }
 
-        // 7. Contains suspicious URL
-        if (lower.contains("bit.ly") || lower.contains("tinyurl") ||
-            lower.contains("http://") || lower.contains("t.me/") ||
-            lower.contains("wa.me/")) {
-            score += 25;
-            result.reasons.add("Suspicious link detected");
+        // The "Scam Intent" Multiplier
+        if (topicFound) {
+            if (hasUrgency) {
+                score += 25;
+                result.reasons.add("Intent: High Pressure / Urgency");
+            }
+            if (hasThreat) {
+                score += 30;
+                result.reasons.add("Intent: Intimidation / Threat");
+            }
+            if (hasReward) {
+                score += 20;
+                result.reasons.add("Intent: Reward Trap");
+            }
+            if (lower.contains("http") || lower.contains("bit.ly") || lower.contains("tinyurl")) {
+                score += 25;
+                result.reasons.add("Payload: Suspicious Link");
+            }
         }
 
-        // Clamp score
+        // 3. FINAL VERDICT
         result.confidence = Math.min(100, score);
-        result.isThreat = result.confidence >= 40;
+        
+        // INTELLIGENCE GATE: 
+        // If it's just "kyc" with no urgency/threat, score will be 15.
+        // To be a threat, it MUST hit 45+.
+        // This requires Topic (15) + [Urgency(25) OR Threat(30) OR Link(25) OR Reward(20)]
+        result.isThreat = result.confidence >= 45;
 
         if (result.confidence >= 75) {
             result.verdict = "HIGH RISK — Likely Scam";

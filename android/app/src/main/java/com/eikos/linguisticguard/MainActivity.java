@@ -78,21 +78,47 @@ public class MainActivity extends Activity {
 
         // Status
         TextView status = new TextView(this);
-        status.setText("Once both permissions are granted, EIKOS will silently protect you in the background. No action needed.");
-        status.setTextColor(Color.parseColor("#64748B"));
-        status.setTextSize(12f);
+        boolean isActive = isAccessibilityServiceEnabled();
+        status.setText("Protection Status: " + (isActive ? "✅ ACTIVE" : "❌ INACTIVE"));
+        status.setTextColor(isActive ? Color.parseColor("#10B981") : Color.parseColor("#EF4444"));
+        status.setTextSize(18f);
+        status.setTypeface(null, Typeface.BOLD);
         root.addView(status);
 
         addSpacer(root, 24);
 
-        // Backend status
-        TextView backendInfo = new TextView(this);
-        backendInfo.setText("Backend: 10.73.52.138:5000\nMake sure your phone is on the same WiFi as your PC.");
-        backendInfo.setTextColor(Color.parseColor("#10B981"));
-        backendInfo.setTextSize(12f);
-        root.addView(backendInfo);
+        // Test Button
+        addStepButton(root, "System Validation",
+            "Simulate a scam detection to test the overlay UI",
+            v -> {
+                Intent intent = new Intent(this, ThreatOverlayActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("verdict", "TEST ALERT");
+                intent.putExtra("confidence", 99);
+                intent.putExtra("reasons", "Manual system test triggered");
+                intent.putExtra("original_message", "This is a test scam message.");
+                startActivity(intent);
+            });
+
+        addSpacer(root, 16);
+
+        // Reset Button (Emergency)
+        Button resetBtn = new Button(this);
+        resetBtn.setText("Emergency Reset (If Alerts Stop)");
+        resetBtn.setBackgroundColor(Color.parseColor("#374151"));
+        resetBtn.setTextColor(Color.WHITE);
+        resetBtn.setOnClickListener(v -> {
+            EikosAccessibilityService.isOverlayVisible = false;
+            Toast.makeText(this, "Security layer reset!", Toast.LENGTH_SHORT).show();
+        });
+        root.addView(resetBtn);
 
         return root;
+    }
+
+    private boolean isAccessibilityServiceEnabled() {
+        String prefString = Settings.Secure.getString(getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+        return prefString != null && prefString.contains(getPackageName());
     }
 
     private void addStepButton(LinearLayout parent, String title, String desc, View.OnClickListener listener) {
