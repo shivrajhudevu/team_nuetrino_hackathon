@@ -141,7 +141,4 @@ Open `http://localhost:5000` in your browser to see the **interactive phone simu
 
 ---
 
-## 👥 Team
 
-Built for the **Hackathon — 14-Hour Sprint**  
-Tagline: *Zero-Action Security for India's Next Billion Users*
