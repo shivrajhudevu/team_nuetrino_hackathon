@@ -107,7 +107,8 @@ public class ThreatOverlayActivity extends Activity {
 
         // Reasons body
         TextView reasonsView = new TextView(this);
-        reasonsView.setText("• " + reasons);
+        String formattedReasons = formatReasons(reasons);
+        reasonsView.setText(formattedReasons);
         reasonsView.setTextColor(Color.parseColor("#D0D0E8"));
         reasonsView.setTextSize(13f);
         reasonsView.setPadding(0, 0, 0, 24);
@@ -166,6 +167,29 @@ public class ThreatOverlayActivity extends Activity {
             LinearLayout.LayoutParams.MATCH_PARENT, 2);
         divider.setLayoutParams(p);
         parent.addView(divider);
+    }
+
+    private String formatReasons(String raw) {
+        if (raw == null || raw.isEmpty()) return "• Suspicious linguistic pattern";
+        try {
+            // Try to parse as JSON array (from Gemini)
+            if (raw.startsWith("[")) {
+                org.json.JSONArray arr = new org.json.JSONArray(raw);
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < arr.length(); i++) {
+                    sb.append("• ").append(arr.getString(i)).append("\n");
+                }
+                return sb.toString().trim();
+            }
+        } catch (Exception e) {
+            // Fallback to raw string
+        }
+        return "• " + raw.replace("\n", "\n• ");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
     }
 
     @Override

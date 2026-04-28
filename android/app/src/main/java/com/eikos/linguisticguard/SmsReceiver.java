@@ -43,19 +43,19 @@ public class SmsReceiver extends BroadcastReceiver {
             String messageText = fullMessage.toString().trim();
             if (messageText.isEmpty()) return;
 
-            // Run LOCAL scam detection
-            LocalScamDetector.ScanResult result = LocalScamDetector.scan(messageText);
-
-            if (result.isThreat) {
-                // Launch the overlay immediately
-                Intent overlayIntent = new Intent(context, ThreatOverlayActivity.class);
-                overlayIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                overlayIntent.putExtra("verdict", result.verdict);
-                overlayIntent.putExtra("confidence", result.confidence);
-                overlayIntent.putExtra("reasons", String.join("\n• ", result.reasons));
-                overlayIntent.putExtra("original_message", messageText);
-                context.startActivity(overlayIntent);
-            }
+            // Run AI detection in background (via ApiClient)
+            new Thread(() -> {
+                EikosApiClient.AnalysisResult result = EikosApiClient.analyze(messageText);
+                if (result != null && result.isThreat) {
+                    Intent overlayIntent = new Intent(context, ThreatOverlayActivity.class);
+                    overlayIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    overlayIntent.putExtra("verdict", result.summary);
+                    overlayIntent.putExtra("confidence", result.confidence);
+                    overlayIntent.putExtra("reasons", result.reasonsJson);
+                    overlayIntent.putExtra("original_message", messageText);
+                    context.startActivity(overlayIntent);
+                }
+            }).start();
 
         } catch (Exception e) {
             // Silent fail — never crash on SMS
