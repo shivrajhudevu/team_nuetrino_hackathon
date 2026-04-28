@@ -1,4 +1,5 @@
 @echo off
+cd /d C:\Users\shivr\OneDrive\Desktop\EIKOS_proj
 echo ==============================================
 echo Pushing EIKOS local detection update...
 echo ==============================================
