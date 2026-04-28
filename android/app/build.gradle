@@ -1,0 +1,35 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.eikos.linguisticguard'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.eikos.linguisticguard"
+        minSdk 26          // Android 8.0+ required for Accessibility improvements
+        targetSdk 34
+        versionCode 1
+        versionName "1.0-hackathon"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+        debug {
+            debuggable true
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    // No external dependencies — uses only Android SDK to keep APK lightweight
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+}

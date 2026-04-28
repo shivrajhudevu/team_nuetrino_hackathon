@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EIKOS | Linguistic Bodyguard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <!-- Mobile Simulator -->
+    <div class="phone-container">
+        <div class="app-header">
+            <div class="avatar">U</div>
+            <div class="contact-info">
+                <h2>Unknown Number</h2>
+                <p>Online</p>
+            </div>
+        </div>
+
+        <div class="chat-area" id="chatArea">
+            <!-- Messages will appear here -->
+            <div class="message msg-received">
+                Namaskara, nanu BESCOM ninda kare madutiddene.
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" placeholder="Type a message..." id="messageInput" disabled>
+            <button class="send-btn" disabled>
+                <svg viewBox="0 0 24 24">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- EIKOS Overlay -->
+        <div class="eikos-overlay" id="eikosOverlay">
+            <div class="overlay-header">
+                <div class="shield-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                </div>
+                <div>
+                    <h1>EIKOS</h1>
+                    <p>THREAT DETECTED</p>
+                </div>
+            </div>
+
+            <div class="reasoning-panel">
+                <h3>Reasoning Engine</h3>
+                <ul class="reason-list" id="reasonList">
+                    <!-- Reasons populated via JS -->
+                </ul>
+            </div>
+
+            <div class="data-flow">
+                <div class="flow-step"><span>Scrubbing PII:</span> <span class="highlight">Success</span></div>
+                <div class="flow-step"><span>Translation:</span> <span class="highlight">Complete</span></div>
+                <div class="flow-step"><span>RAG Confidence:</span> <span class="highlight" id="ragConfidence">--%</span></div>
+                <div class="flow-step"><span>Latency:</span> <span class="highlight" id="latencyStat">-- ms</span></div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="dismissOverlay('block')">Block & Report</button>
+                <button class="btn btn-secondary" onclick="dismissOverlay('ignore')">Ignore Warning</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demo Controls -->
+    <div class="demo-controls">
+        <h1 class="demo-title">EIKOS</h1>
+        <p class="demo-subtitle">Autonomous Forensic Layer for Regional Language Security. Click a scenario to simulate receiving a scam message.</p>
+
+        <button class="scenario-btn" onclick="simulateMessage('vidyut vibhag se: aapka bijli connection aaj raat 9 baje kat diya jayega. turant kripya is link par bill pay karein')">
+            <strong>Hindi: Electricity Bill Threat</strong>
+            Urgent payment required to prevent power cut.
+        </button>
+
+        <button class="scenario-btn" onclick="simulateMessage('nimmage 10 laksha bahumana bandide, UPI pin heli')">
+            <strong>Kannada: Lottery Scam</strong>
+            Requests UPI PIN to claim reward.
+        </button>
+
+        <button class="scenario-btn" onclick="simulateMessage('sir, mai bank se bol raha hu, aapka debit card block ho gaya hai, unblock karne ke liye OTP bataye')">
+            <strong>Hindi: Bank Impersonation</strong>
+            Asks for OTP to unblock debit card.
+        </button>
+
+        <button class="scenario-btn" onclick="simulateMessage('sir, urgent aagi 5000 rs kalsi, hospital nalli iddini. my account: 12345678901')">
+            <strong>Kannada: Emergency Scam (with PII)</strong>
+            Creates false emergency, tests PII scrubbing.
+        </button>
+
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 20px;">
+            <div class="loader" id="loadingSpinner"></div>
+            <span id="loadingText" style="color: var(--text-secondary); display: none;">Analyzing UI elements...</span>
+        </div>
+    </div>
+
+    <script src="/static/js/script.js"></script>
+</body>
+</html>

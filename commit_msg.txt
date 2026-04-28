@@ -1,0 +1,9 @@
+feat: initial commit - EIKOS Linguistic Bodyguard v1.0
+
+- Flask backend with RAG + Tone Analyzer pipeline
+- Privacy Scrubber (regex PII masking for phone, UPI, Aadhaar)
+- Bhashini bridge for Kannada and Hindi translation
+- Glassmorphism web demo simulator (HTML/CSS/JS)
+- Android Accessibility Service + SMS Receiver
+- ThreatOverlayActivity with reasoning panel
+- EikosApiClient for backend communication

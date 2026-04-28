@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">EIKOS Guard</string>
+    <string name="accessibility_service_description">
+        EIKOS monitors text in WhatsApp, SMS, and Telegram ONLY when high-risk trigger words
+        are detected. No data is stored. All PII is masked before analysis. Zero-Storage Policy.
+    </string>
+</resources>
