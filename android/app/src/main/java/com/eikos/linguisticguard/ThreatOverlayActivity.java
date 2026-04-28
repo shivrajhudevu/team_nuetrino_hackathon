@@ -2,21 +2,21 @@ package com.eikos.linguisticguard;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
-
-import org.json.JSONArray;
 
 /**
  * EIKOS Threat Overlay Activity
  *
- * A translucent, full-screen activity that slides over the active app
- * when a threat is detected. Shows the reasoning panel and action buttons.
- * Uses programmatic UI to avoid needing XML layout files.
+ * Displays a full-screen glassmorphism-style alert when a scam is detected.
+ * Launched automatically by EikosAccessibilityService.
  */
 public class ThreatOverlayActivity extends Activity {
 
@@ -24,139 +24,150 @@ public class ThreatOverlayActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Make this appear over other apps as a translucent overlay
-        getWindow().addFlags(
-            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
-            WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
-        );
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        getWindow().setLayout(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT
+        );
 
-        // Extract data from intent
-        String reasonsJson = getIntent().getStringExtra("reasons");
-        int confidence = getIntent().getIntExtra("confidence", 0);
-        float latency = getIntent().getFloatExtra("latency", 0f);
+        // Read extras from Intent
+        String verdict     = getIntent().getStringExtra("verdict");
+        int confidence     = getIntent().getIntExtra("confidence", 0);
+        String reasons     = getIntent().getStringExtra("reasons");
+        String originalMsg = getIntent().getStringExtra("original_message");
 
-        // Build overlay UI programmatically
-        LinearLayout root = buildOverlayUI(reasonsJson, confidence, latency);
+        if (verdict == null)     verdict     = "HIGH RISK — Likely Scam";
+        if (reasons == null)     reasons     = "Scam pattern detected";
+        if (originalMsg == null) originalMsg = "";
+
+        // Root dark overlay
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setGravity(Gravity.CENTER);
+        root.setBackgroundColor(Color.parseColor("#E50A0A1A"));
+        root.setPadding(40, 80, 40, 80);
+
+        // Card
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setGravity(Gravity.CENTER_HORIZONTAL);
+        card.setBackgroundColor(Color.parseColor("#1A1A2E"));
+        card.setPadding(52, 52, 52, 52);
+
+        // Shield emoji
+        TextView shield = new TextView(this);
+        shield.setText("🛡️");
+        shield.setTextSize(52f);
+        shield.setGravity(Gravity.CENTER);
+        card.addView(shield);
+
+        // Title
+        TextView title = new TextView(this);
+        title.setText("EIKOS ALERT");
+        title.setTextColor(Color.parseColor("#FF4D6D"));
+        title.setTextSize(22f);
+        title.setTypeface(null, Typeface.BOLD);
+        title.setGravity(Gravity.CENTER);
+        title.setPadding(0, 12, 0, 4);
+        card.addView(title);
+
+        // Verdict
+        TextView verdictView = new TextView(this);
+        verdictView.setText(verdict);
+        verdictView.setTextColor(Color.parseColor("#FFD166"));
+        verdictView.setTextSize(15f);
+        verdictView.setTypeface(null, Typeface.BOLD);
+        verdictView.setGravity(Gravity.CENTER);
+        verdictView.setPadding(0, 0, 0, 16);
+        card.addView(verdictView);
+
+        // Risk score
+        TextView confText = new TextView(this);
+        confText.setText("Risk Score: " + confidence + "%");
+        confText.setTextColor(Color.parseColor("#EF8354"));
+        confText.setTextSize(14f);
+        confText.setGravity(Gravity.CENTER);
+        confText.setPadding(0, 0, 0, 20);
+        card.addView(confText);
+
+        // Divider
+        addDivider(card);
+
+        // Reasons header
+        TextView reasonsHeader = new TextView(this);
+        reasonsHeader.setText("WHY THIS IS SUSPICIOUS:");
+        reasonsHeader.setTextColor(Color.parseColor("#A0A0C0"));
+        reasonsHeader.setTextSize(11f);
+        reasonsHeader.setTypeface(null, Typeface.BOLD);
+        reasonsHeader.setPadding(0, 20, 0, 8);
+        card.addView(reasonsHeader);
+
+        // Reasons body
+        TextView reasonsView = new TextView(this);
+        reasonsView.setText("• " + reasons);
+        reasonsView.setTextColor(Color.parseColor("#D0D0E8"));
+        reasonsView.setTextSize(13f);
+        reasonsView.setPadding(0, 0, 0, 24);
+        reasonsView.setLineSpacing(6f, 1f);
+        card.addView(reasonsView);
+
+        // Detected message snippet
+        if (!originalMsg.isEmpty()) {
+            addDivider(card);
+
+            TextView msgHeader = new TextView(this);
+            msgHeader.setText("DETECTED TEXT:");
+            msgHeader.setTextColor(Color.parseColor("#A0A0C0"));
+            msgHeader.setTextSize(11f);
+            msgHeader.setTypeface(null, Typeface.BOLD);
+            msgHeader.setPadding(0, 16, 0, 8);
+            card.addView(msgHeader);
+
+            int maxLen = Math.min(originalMsg.length(), 150);
+            TextView msgView = new TextView(this);
+            msgView.setText("\"" + originalMsg.substring(0, maxLen) +
+                (originalMsg.length() > 150 ? "..." : "") + "\"");
+            msgView.setTextColor(Color.parseColor("#8080A0"));
+            msgView.setTextSize(12f);
+            msgView.setPadding(0, 0, 0, 24);
+            card.addView(msgView);
+        }
+
+        // Dismiss button
+        Button dismissBtn = new Button(this);
+        dismissBtn.setText("I AM AWARE — DISMISS");
+        dismissBtn.setBackgroundColor(Color.parseColor("#16213E"));
+        dismissBtn.setTextColor(Color.parseColor("#FF4D6D"));
+        dismissBtn.setTextSize(13f);
+        dismissBtn.setTypeface(null, Typeface.BOLD);
+        dismissBtn.setPadding(32, 24, 32, 24);
+        dismissBtn.setOnClickListener(v -> finish());
+
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT);
+        btnParams.setMargins(0, 8, 0, 0);
+        dismissBtn.setLayoutParams(btnParams);
+        card.addView(dismissBtn);
+
+        ScrollView scrollView = new ScrollView(this);
+        scrollView.addView(card);
+        root.addView(scrollView);
         setContentView(root);
     }
 
-    private LinearLayout buildOverlayUI(String reasonsJson, int confidence, float latency) {
-        // Root container — dark semi-transparent background
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.parseColor("#EE0A0A0F")); // dark with 93% opacity
-        root.setPadding(48, 96, 48, 64);
-
-        // ── Header: EIKOS + THREAT DETECTED ──────────────────────────────────
-        TextView headerLabel = new TextView(this);
-        headerLabel.setText("🛡 EIKOS");
-        headerLabel.setTextColor(Color.WHITE);
-        headerLabel.setTextSize(28f);
-        headerLabel.setTypeface(null, android.graphics.Typeface.BOLD);
-        root.addView(headerLabel);
-
-        TextView threatLabel = new TextView(this);
-        threatLabel.setText("⚠ THREAT DETECTED");
-        threatLabel.setTextColor(Color.parseColor("#EF4444"));
-        threatLabel.setTextSize(14f);
-        threatLabel.setTypeface(null, android.graphics.Typeface.BOLD);
-        threatLabel.setLetterSpacing(0.15f);
-        root.addView(threatLabel);
-
-        addSpacer(root, 32);
-
-        // ── Reasoning Panel ───────────────────────────────────────────────────
-        TextView reasoningTitle = new TextView(this);
-        reasoningTitle.setText("Reasoning Engine");
-        reasoningTitle.setTextColor(Color.parseColor("#CBD5E1"));
-        reasoningTitle.setTextSize(14f);
-        root.addView(reasoningTitle);
-
-        addSpacer(root, 12);
-
-        try {
-            JSONArray reasons = new JSONArray(reasonsJson);
-            for (int i = 0; i < reasons.length(); i++) {
-                TextView reason = new TextView(this);
-                reason.setText("• " + reasons.getString(i));
-                reason.setTextColor(Color.WHITE);
-                reason.setTextSize(13f);
-                reason.setPadding(0, 6, 0, 6);
-                root.addView(reason);
-            }
-        } catch (Exception e) {
-            TextView fallback = new TextView(this);
-            fallback.setText("• Predatory pattern detected in message.");
-            fallback.setTextColor(Color.WHITE);
-            root.addView(fallback);
-        }
-
-        addSpacer(root, 24);
-
-        // ── Stats Panel ───────────────────────────────────────────────────────
-        LinearLayout statsBox = new LinearLayout(this);
-        statsBox.setOrientation(LinearLayout.VERTICAL);
-        statsBox.setBackgroundColor(Color.parseColor("#1A1A25"));
-        statsBox.setPadding(32, 24, 32, 24);
-
-        addStatRow(statsBox, "RAG Confidence:", confidence + "%");
-        addStatRow(statsBox, "Latency:", Math.round(latency * 1000) + " ms");
-        addStatRow(statsBox, "PII Scrubbing:", "Active ✓");
-        addStatRow(statsBox, "Data Sent Externally:", "None ✓");
-        root.addView(statsBox);
-
-        addSpacer(root, 32);
-
-        // ── Action Buttons ────────────────────────────────────────────────────
-        Button blockBtn = new Button(this);
-        blockBtn.setText("BLOCK & REPORT");
-        blockBtn.setBackgroundColor(Color.parseColor("#EF4444"));
-        blockBtn.setTextColor(Color.WHITE);
-        blockBtn.setTypeface(null, android.graphics.Typeface.BOLD);
-        blockBtn.setOnClickListener(v -> finish());
-        root.addView(blockBtn);
-
-        addSpacer(root, 12);
-
-        Button ignoreBtn = new Button(this);
-        ignoreBtn.setText("Ignore Warning");
-        ignoreBtn.setBackgroundColor(Color.parseColor("#2A2A35"));
-        ignoreBtn.setTextColor(Color.parseColor("#94A3B8"));
-        ignoreBtn.setOnClickListener(v -> finish());
-        root.addView(ignoreBtn);
-
-        return root;
+    private void addDivider(LinearLayout parent) {
+        View divider = new View(this);
+        divider.setBackgroundColor(Color.parseColor("#2A2A4A"));
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, 2);
+        divider.setLayoutParams(p);
+        parent.addView(divider);
     }
 
-    private void addStatRow(LinearLayout parent, String label, String value) {
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setPadding(0, 6, 0, 6);
-
-        TextView labelView = new TextView(this);
-        labelView.setText(label);
-        labelView.setTextColor(Color.parseColor("#94A3B8"));
-        labelView.setTextSize(12f);
-        labelView.setLayoutParams(new LinearLayout.LayoutParams(0,
-            LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-        row.addView(labelView);
-
-        TextView valueView = new TextView(this);
-        valueView.setText(value);
-        valueView.setTextColor(Color.parseColor("#3B82F6"));
-        valueView.setTextSize(12f);
-        valueView.setTypeface(null, android.graphics.Typeface.BOLD);
-        row.addView(valueView);
-
-        parent.addView(row);
-    }
-
-    private void addSpacer(LinearLayout parent, int height) {
-        View spacer = new View(this);
-        spacer.setLayoutParams(new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT, height));
-        parent.addView(spacer);
+    @Override
+    public void onBackPressed() {
+        finish();
     }
 }

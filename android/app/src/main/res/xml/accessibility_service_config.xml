@@ -5,5 +5,4 @@
     android:accessibilityFlags="flagDefault|flagReportViewIds|flagRetrieveInteractiveWindows"
     android:canRetrieveWindowContent="true"
     android:description="@string/accessibility_service_description"
-    android:notificationTimeout="100"
-    android:packageNames="com.whatsapp,com.android.mms,org.telegram.messenger,com.google.android.apps.messaging,com.android.messaging" />
+    android:notificationTimeout="100" />

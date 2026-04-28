@@ -19,7 +19,7 @@ import java.nio.charset.StandardCharsets;
 public class EikosApiClient {
 
     // ── IMPORTANT: Change this to your PC's local IP when running on same WiFi ──
-    private static final String BACKEND_URL = "http://10.73.52.138:5000/api/analyze";
+    private static final String BACKEND_URL = "http://10.0.2.2:5000/api/analyze";
     private static final int TIMEOUT_MS = 8000; // 8 second timeout
 
     public static class AnalysisResult {
