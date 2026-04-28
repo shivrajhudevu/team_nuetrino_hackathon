@@ -1,12 +1,14 @@
 @echo off
 cd /d C:\Users\shivr\OneDrive\Desktop\EIKOS_proj
 echo ==============================================
-echo Pushing EIKOS local detection update...
+echo Pushing to GitHub (Judge-Ready Version)...
 echo ==============================================
 git add .
-git commit -m "feat: migrate to 100%% local on-device scam detection (no server needed)"
+git commit -m "docs: professional judge-ready README with architecture and demo guide"
 git pull origin main --rebase
 git push origin main
 echo ==============================================
-echo DONE! Press any key to close.
+echo SUCCESS! Code is live on GitHub.
+echo https://github.com/shivrajhudevu/team_nuetrino_hackathon
+echo ==============================================
 pause >nul
