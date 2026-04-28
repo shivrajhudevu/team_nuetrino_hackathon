@@ -47,32 +47,35 @@ It operates as an **invisible forensic layer** using:
 ## 📁 Project Structure
 
 ```
-EIKOS_proj/
-├── app.py                      # Flask API — main entry point
-├── requirements.txt
-├── core/
-│   ├── privacy_scrubber.py     # Regex PII masking (phone, UPI, Aadhaar)
-│   ├── bhashini_bridge.py      # Kannada/Hindi → English translation
-│   ├── rag_engine.py           # Semantic scam pattern matching
-│   └── tone_analyzer.py        # Urgency / threat / reward heuristics
-├── templates/
-│   └── index.html              # Web demo simulator (phone UI mockup)
-├── static/
-│   ├── css/style.css           # Glassmorphism dark-theme styles
-│   └── js/script.js            # Frontend interaction logic
-└── android/
-    └── app/src/main/
-        ├── AndroidManifest.xml
-        ├── java/com/eikos/linguisticguard/
-        │   ├── MainActivity.java               # Setup & permission hub
-        │   ├── EikosAccessibilityService.java  # Core brain
-        │   ├── SmsReceiver.java                # SMS interceptor
-        │   ├── ThreatOverlayActivity.java      # Alert UI
-        │   └── EikosApiClient.java             # HTTP client
-        └── res/
-            ├── xml/accessibility_service_config.xml
-            └── values/strings.xml, themes.xml
-```
+    team_nuetrino_hackathon/
+│
+├── app/
+├── components/
+├── hooks/
+├── lib/
+├── public/
+│
+├── backend/
+│   ├── main.py
+│   ├── requirements.txt
+│   ├── routes/
+│   │   └── analyze.py
+│   ├── services/
+│   │   ├── bhashini_service.py
+│   │   ├── rag_engine.py
+│   │   ├── llm_engine.py
+│   │   └── translator.py
+│   ├── vectordb/
+│   │   └── ingest.py
+│   └── utils/
+│       └── helpers.py
+│
+├── datasets/
+│   ├── scam_templates.json
+│   ├── rbi_guidelines.txt
+│   └── npci_guidelines.txt
+│
+└── package.json
 
 ---
 
