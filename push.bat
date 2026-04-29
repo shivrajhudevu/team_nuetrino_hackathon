@@ -8,7 +8,7 @@ echo ==============================================
 if exist .git\index.lock del /f .git\index.lock
 
 git add .
-git commit -m "feat: final hackathon build - 100% Offline Neural Scanner, Advanced Dashboard UI, & Glassmorphism Alert Overlay"
+git commit -m "feat: implement local neural scanner, glassmorphism dashboard UI, and floating threat overlay"
 
 :: Using autostash to prevent rebase conflicts
 git pull origin main --rebase --autostash
