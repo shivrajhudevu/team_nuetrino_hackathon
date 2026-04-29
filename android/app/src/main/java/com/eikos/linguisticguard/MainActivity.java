@@ -83,7 +83,7 @@ public class MainActivity extends Activity {
 
         // --- HERO SECTION ---
         TextView badge = new TextView(this);
-        badge.setText("⚡ AI-Powered Defense for Digital India");
+        badge.setText("⚡ Autonomous Defense for Digital India");
         badge.setTextColor(Color.parseColor("#00E5FF"));
         badge.setBackground(createButtonBg("#1A00E5FF", 30f)); // Translucent Cyan
         badge.setPadding(40, 15, 40, 15);
@@ -109,7 +109,7 @@ public class MainActivity extends Activity {
         addSpacer(root, 10);
 
         TextView subtitle = new TextView(this);
-        subtitle.setText("AI Powered Multilingual Fraud\nIntelligence Engine");
+        subtitle.setText("Autonomous Multilingual Fraud\nIntelligence Engine");
         subtitle.setTextColor(Color.WHITE); 
         subtitle.setTextSize(18f);
         subtitle.setTypeface(null, Typeface.BOLD);
