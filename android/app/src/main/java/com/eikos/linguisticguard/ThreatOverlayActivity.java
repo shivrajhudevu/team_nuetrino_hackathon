@@ -26,11 +26,17 @@ public class ThreatOverlayActivity extends Activity {
         
         EikosAccessibilityService.isOverlayVisible = true;
 
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH);
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        
+        WindowManager.LayoutParams params = getWindow().getAttributes();
+        params.gravity = Gravity.TOP;
+        params.y = 100;
+        getWindow().setAttributes(params);
+
         getWindow().setLayout(
             WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT
+            WindowManager.LayoutParams.WRAP_CONTENT
         );
 
         // Read extras from Intent

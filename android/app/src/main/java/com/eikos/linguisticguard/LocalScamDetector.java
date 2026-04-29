@@ -65,22 +65,22 @@ public class LocalScamDetector {
     // ── URGENCY INDICATORS ───────────────────────────────────────────────────
     private static final Set<String> URGENCY_WORDS = new HashSet<>(Arrays.asList(
         "immediately", "urgent", "now", "expire", "expiry", "last chance",
-        "within 24 hours", "within 2 hours", "today only", "right now",
-        "turant", "jaldi", "abhi", "तुरंत", "जल्दी", "अभी", "ತಕ್ಷಣ"
+        "within 24 hours", "within 2 hours", "today only", "right now", "delay",
+        "turant", "jaldi", "abhi", "तुरंत", "जल्दी", "अभी", "ತಕ್ಷಣ", "ಕೂಡಲೇ"
     ));
 
     // ── THREAT INDICATORS ────────────────────────────────────────────────────
     private static final Set<String> THREAT_WORDS = new HashSet<>(Arrays.asList(
         "arrested", "arrest", "police", "warrant", "legal action", "court",
-        "block", "blocked", "suspend", "suspended", "penalty", "fine",
-        "cut", "disconnect", "freeze", "frozen", "deactivate",
-        "band", "block", "ब्लॉक", "ಬ್ಲಾಕ್"
+        "block", "blocked", "suspend", "suspended", "penalty", "fine", "jail",
+        "cut", "disconnect", "freeze", "frozen", "deactivate", "terminated",
+        "band", "block", "ब्लॉक", "ಬ್ಲಾಕ್", "रद्द", "ಕಡಿತ"
     ));
 
     // ── REWARD TRAPS ─────────────────────────────────────────────────────────
     private static final Set<String> REWARD_WORDS = new HashSet<>(Arrays.asList(
-        "won", "winner", "lottery", "prize", "reward", "cashback",
-        "congratulations", "selected", "lucky", "free", "gift",
+        "won", "winner", "lottery", "prize", "reward", "cashback", "jackpot",
+        "congratulations", "selected", "lucky", "free", "gift", "giveaway",
         "inaam", "jeeta", "इनाम", "जीता", "ಬಹುಮಾನ", "ಜೇತಾ"
     ));
 
@@ -113,7 +113,11 @@ public class LocalScamDetector {
         
         int score = 0;
         // Base points for high-risk topics
-        Set<String> TOPICS = new HashSet<>(Arrays.asList("otp", "upi", "pin", "kyc", "electricity", "bill", "refund", "bank", "account"));
+        Set<String> TOPICS = new HashSet<>(Arrays.asList(
+            "otp", "upi", "pin", "kyc", "electricity", "bill", "refund", "bank", 
+            "account", "password", "pan card", "aadhaar", "parcel", "delivery", 
+            "customs", "tax", "crypto", "bitcoin", "loan"
+        ));
         boolean topicFound = false;
         for (String t : TOPICS) {
             if (lower.contains(t)) {

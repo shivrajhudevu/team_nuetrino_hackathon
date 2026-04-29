@@ -7,6 +7,15 @@ import android.os.Looper;
 import android.widget.Toast;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.view.WindowManager;
+import android.view.View;
+import android.view.Gravity;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.PixelFormat;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Button;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -88,33 +97,17 @@ public class EikosAccessibilityService extends AccessibilityService {
                 Toast.LENGTH_SHORT).show();
         });
 
-        // Run AI analysis in background
+        // Run LOCAL analysis in background
         executor.submit(() -> {
-            EikosApiClient.AnalysisResult result = EikosApiClient.analyze(textToScan);
+            LocalScamDetector.ScanResult result = LocalScamDetector.scan(textToScan);
 
-            if (result == null) {
-                // Connection failed (Backend offline or wrong IP)
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    Toast.makeText(getApplicationContext(),
-                        "❌ EIKOS: Cannot connect to AI Backend. Is your PC on?",
-                        Toast.LENGTH_SHORT).show();
-                });
-                return;
-            }
-
-            if (result.isThreat) {
+            if (result != null && result.isThreat) {
                 new Handler(Looper.getMainLooper()).post(() -> {
                     Toast.makeText(getApplicationContext(),
                         "🚨 EIKOS AI: Scam Detected! (" + result.confidence + "% confidence)",
                         Toast.LENGTH_LONG).show();
 
-                    Intent intent = new Intent(this, ThreatOverlayActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    intent.putExtra("verdict", result.summary);
-                    intent.putExtra("confidence", result.confidence);
-                    intent.putExtra("reasons", result.reasonsJson);
-                    intent.putExtra("original_message", textToScan);
-                    startActivity(intent);
+                    showFloatingAlert(result);
                 });
             }
         });
@@ -145,5 +138,62 @@ public class EikosAccessibilityService extends AccessibilityService {
     @Override
     public void onInterrupt() {
         executor.shutdownNow();
+    }
+
+    private void showFloatingAlert(LocalScamDetector.ScanResult result) {
+        WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
+        
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+            PixelFormat.TRANSLUCENT
+        );
+        params.gravity = Gravity.TOP;
+        params.y = 100;
+
+        // Container
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setBackgroundColor(Color.parseColor("#E6111118")); // Advanced Glass Dark
+        card.setPadding(40, 40, 40, 40);
+
+        // Header
+        TextView title = new TextView(this);
+        title.setText("🛡️ EIKOS CYBER SHIELD 🛡️");
+        title.setTextColor(Color.parseColor("#FF3366"));
+        title.setTextSize(16f);
+        title.setTypeface(null, Typeface.BOLD);
+        title.setGravity(Gravity.CENTER);
+        card.addView(title);
+
+        // Threat Info
+        TextView verdict = new TextView(this);
+        verdict.setText("THREAT: " + result.verdict);
+        verdict.setTextColor(Color.parseColor("#FFCC00"));
+        verdict.setTextSize(14f);
+        verdict.setPadding(0, 10, 0, 10);
+        card.addView(verdict);
+
+        TextView reasons = new TextView(this);
+        reasons.setText(String.join("\n• ", result.reasons));
+        reasons.setTextColor(Color.parseColor("#AABBCC"));
+        reasons.setTextSize(12f);
+        card.addView(reasons);
+
+        // Dismiss Button
+        Button btn = new Button(this);
+        btn.setText("DISMISS ALARM");
+        btn.setBackgroundColor(Color.parseColor("#331111"));
+        btn.setTextColor(Color.parseColor("#FF3366"));
+        btn.setOnClickListener(v -> {
+            wm.removeView(card);
+            isOverlayVisible = false;
+        });
+        card.addView(btn);
+
+        wm.addView(card, params);
+        isOverlayVisible = true;
     }
 }
