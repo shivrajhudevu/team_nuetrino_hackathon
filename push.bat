@@ -9,7 +9,7 @@ if exist .git\index.lock del /f .git\index.lock
 
 git rm --cached push.bat CleanBuild.bat FixGit.bat run_ai.bat 2>nul
 git add .
-git commit -m "feat: implement local neural scanner, glassmorphism dashboard UI, and floating threat overlay"
+git commit -m "docs: add project README and progress tracking"
 
 :: Using autostash to prevent rebase conflicts
 git pull origin main --rebase --autostash
