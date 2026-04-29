@@ -49,18 +49,31 @@ public class ThreatOverlayActivity extends Activity {
         if (reasons == null)     reasons     = "Scam pattern detected";
         if (originalMsg == null) originalMsg = "";
 
+        // Log the threat to SharedPreferences
+        android.content.SharedPreferences prefs = getSharedPreferences("EIKOS_THREATS", MODE_PRIVATE);
+        String existingLog = prefs.getString("log_data", "");
+        String newEntry = "\n---\n🚨 " + verdict + " (" + confidence + "%)\n" +
+                          "Message: " + originalMsg + "\n" +
+                          "Flagged: \n" + reasons + "\n";
+        prefs.edit().putString("log_data", newEntry + existingLog).apply();
+
         // Root dark overlay
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setGravity(Gravity.CENTER);
-        root.setBackgroundColor(Color.parseColor("#E50A0A1A"));
+        root.setBackgroundColor(Color.parseColor("#E5020813")); // Cyan-dark translucent
         root.setPadding(40, 80, 40, 80);
 
         // Card
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
         card.setGravity(Gravity.CENTER_HORIZONTAL);
-        card.setBackgroundColor(Color.parseColor("#1A1A2E"));
+        
+        android.graphics.drawable.GradientDrawable gd = new android.graphics.drawable.GradientDrawable();
+        gd.setColor(Color.parseColor("#0A1423"));
+        gd.setCornerRadius(60f);
+        gd.setStroke(2, Color.parseColor("#1A00E5FF"));
+        card.setBackground(gd);
         card.setPadding(52, 52, 52, 52);
 
         // Shield emoji
@@ -70,41 +83,67 @@ public class ThreatOverlayActivity extends Activity {
         shield.setGravity(Gravity.CENTER);
         card.addView(shield);
 
+        // Language Detection (Regex safe for multi-line)
+        String lang = "EN";
+        java.util.regex.Pattern knPattern = java.util.regex.Pattern.compile("[\\u0C80-\\u0CFF]");
+        java.util.regex.Pattern hiPattern = java.util.regex.Pattern.compile("[\\u0900-\\u097F]");
+        
+        if (knPattern.matcher(originalMsg).find()) {
+            lang = "KN"; // Kannada
+        } else if (hiPattern.matcher(originalMsg).find()) {
+            lang = "HI"; // Hindi
+        }
+
+        // Translate Title and Description
+        String translatedVerdict = "🚨 " + verdict;
+        String translatedDesc = "This message has been flagged as highly suspicious by the EIKOS Neural Engine. Please do not click any links or share personal information.";
+        String translatedClose = "[ DISMISS ALARM ]";
+        
+        String translatedReasonsHdr = "WHY THIS IS SUSPICIOUS:";
+        String translatedMsgHdr = "DETECTED TEXT:";
+
+        if (lang.equals("KN")) {
+            if (verdict.contains("HIGH THREAT")) translatedVerdict = "🚨 ಹೆಚ್ಚಿನ ಅಪಾಯ ಪತ್ತೆಯಾಗಿದೆ (HIGH THREAT)";
+            else translatedVerdict = "⚠️ ಅನುಮಾನಾಸ್ಪದ - ಎಚ್ಚರಿಕೆಯಿಂದ ಮುಂದುವರಿಯಿರಿ";
+            
+            translatedDesc = "ಈ ಸಂದೇಶವನ್ನು EIKOS ನ್ಯೂರಲ್ ಎಂಜಿನ್ ಹೆಚ್ಚು ಅನುಮಾನಾಸ್ಪದ ಎಂದು ಗುರುತಿಸಿದೆ. ದಯವಿಟ್ಟು ಯಾವುದೇ ಲಿಂಕ್‌ಗಳನ್ನು ಕ್ಲಿಕ್ ಮಾಡಬೇಡಿ ಅಥವಾ ವೈಯಕ್ತಿಕ ಮಾಹಿತಿಯನ್ನು ಹಂಚಿಕೊಳ್ಳಬೇಡಿ.";
+            translatedClose = "[ ಮುಚ್ಚಿ ]";
+            translatedReasonsHdr = "ಇದು ಏಕೆ ಅನುಮಾನಾಸ್ಪದವಾಗಿದೆ:";
+            translatedMsgHdr = "ಪತ್ತೆಯಾದ ಪಠ್ಯ:";
+        } else if (lang.equals("HI")) {
+            if (verdict.contains("HIGH THREAT")) translatedVerdict = "🚨 उच्च खतरा पाया गया";
+            else translatedVerdict = "⚠️ संदिग्ध - सावधानी से आगे बढ़ें";
+            
+            translatedDesc = "इस संदेश को EIKOS न्यूरल इंजन द्वारा अत्यधिक संदिग्ध के रूप में चिह्नित किया गया है। कृपया किसी भी लिंक पर क्लिक न करें या व्यक्तिगत जानकारी साझा न करें।";
+            translatedClose = "[ बंद करें ]";
+            translatedReasonsHdr = "यह संदिग्ध क्यों है:";
+            translatedMsgHdr = "पाया गया पाठ:";
+        }
+
         // Title
         TextView title = new TextView(this);
-        title.setText("EIKOS ALERT");
-        title.setTextColor(Color.parseColor("#FF4D6D"));
-        title.setTextSize(22f);
-        title.setTypeface(null, Typeface.BOLD);
+        title.setText(translatedVerdict + "\nConfidence: " + confidence + "%");
+        title.setTextColor(Color.WHITE);
+        title.setTextSize(18f);
+        title.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
         title.setGravity(Gravity.CENTER);
-        title.setPadding(0, 12, 0, 4);
         card.addView(title);
 
-        // Verdict
-        TextView verdictView = new TextView(this);
-        verdictView.setText(verdict);
-        verdictView.setTextColor(Color.parseColor("#FFD166"));
-        verdictView.setTextSize(15f);
-        verdictView.setTypeface(null, Typeface.BOLD);
-        verdictView.setGravity(Gravity.CENTER);
-        verdictView.setPadding(0, 0, 0, 16);
-        card.addView(verdictView);
-
-        // Risk score
-        TextView confText = new TextView(this);
-        confText.setText("Risk Score: " + confidence + "%");
-        confText.setTextColor(Color.parseColor("#EF8354"));
-        confText.setTextSize(14f);
-        confText.setGravity(Gravity.CENTER);
-        confText.setPadding(0, 0, 0, 20);
-        card.addView(confText);
+        // Warning Text
+        TextView warning = new TextView(this);
+        warning.setText(translatedDesc);
+        warning.setTextColor(Color.parseColor("#94A3B8"));
+        warning.setTextSize(14f);
+        warning.setGravity(Gravity.CENTER);
+        warning.setPadding(0, 10, 0, 20);
+        card.addView(warning);
 
         // Divider
         addDivider(card);
 
         // Reasons header
         TextView reasonsHeader = new TextView(this);
-        reasonsHeader.setText("WHY THIS IS SUSPICIOUS:");
+        reasonsHeader.setText(translatedReasonsHdr);
         reasonsHeader.setTextColor(Color.parseColor("#A0A0C0"));
         reasonsHeader.setTextSize(11f);
         reasonsHeader.setTypeface(null, Typeface.BOLD);
@@ -126,7 +165,7 @@ public class ThreatOverlayActivity extends Activity {
             addDivider(card);
 
             TextView msgHeader = new TextView(this);
-            msgHeader.setText("DETECTED TEXT:");
+            msgHeader.setText(translatedMsgHdr);
             msgHeader.setTextColor(Color.parseColor("#A0A0C0"));
             msgHeader.setTextSize(11f);
             msgHeader.setTypeface(null, Typeface.BOLD);
@@ -145,7 +184,7 @@ public class ThreatOverlayActivity extends Activity {
 
         // Dismiss button
         Button dismissBtn = new Button(this);
-        dismissBtn.setText("I AM AWARE — DISMISS");
+        dismissBtn.setText(translatedClose);
         dismissBtn.setBackgroundColor(Color.parseColor("#16213E"));
         dismissBtn.setTextColor(Color.parseColor("#FF4D6D"));
         dismissBtn.setTextSize(13f);

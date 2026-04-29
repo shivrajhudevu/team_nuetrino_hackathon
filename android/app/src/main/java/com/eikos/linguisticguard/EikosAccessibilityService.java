@@ -153,44 +153,76 @@ public class EikosAccessibilityService extends AccessibilityService {
         params.gravity = Gravity.TOP;
         params.y = 100;
 
-        // Container
+        // Language Detection (Regex safe for multi-line)
+        String lang = "EN";
+        java.util.regex.Pattern knPattern = java.util.regex.Pattern.compile("[\\u0C80-\\u0CFF]");
+        java.util.regex.Pattern hiPattern = java.util.regex.Pattern.compile("[\\u0900-\\u097F]");
+        
+        if (knPattern.matcher(lastAnalyzedText).find()) {
+            lang = "KN"; // Kannada
+        } else if (hiPattern.matcher(lastAnalyzedText).find()) {
+            lang = "HI"; // Hindi
+        }
+
+        // Translate Title and Description
+        String translatedVerdict = "🚨 " + result.verdict;
+        String translatedClose = "[ DISMISS ALARM ]";
+        
+        if (lang.equals("KN")) {
+            if (result.verdict.contains("HIGH THREAT")) translatedVerdict = "🚨 ಹೆಚ್ಚಿನ ಅಪಾಯ ಪತ್ತೆಯಾಗಿದೆ (HIGH THREAT)";
+            else translatedVerdict = "⚠️ ಅನುಮಾನಾಸ್ಪದ - ಎಚ್ಚರಿಕೆಯಿಂದ ಮುಂದುವರಿಯಿರಿ";
+            translatedClose = "[ ಮುಚ್ಚಿ ]";
+        } else if (lang.equals("HI")) {
+            if (result.verdict.contains("HIGH THREAT")) translatedVerdict = "🚨 उच्च खतरा पाया गया";
+            else translatedVerdict = "⚠️ संदिग्ध - सावधानी से आगे बढ़ें";
+            translatedClose = "[ बंद करें ]";
+        }
+
+        // Container (Terminal Block)
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setBackgroundColor(Color.parseColor("#E6111118")); // Advanced Glass Dark
+        android.graphics.drawable.GradientDrawable gd = new android.graphics.drawable.GradientDrawable();
+        gd.setColor(Color.parseColor("#05050A")); // Pitch black
+        gd.setCornerRadius(0f); // Sharp edges
+        gd.setStroke(3, Color.parseColor("#FF2A5F")); // Neon red stroke
+        card.setBackground(gd);
         card.setPadding(40, 40, 40, 40);
 
-        // Header
-        TextView title = new TextView(this);
-        title.setText("🛡️ EIKOS CYBER SHIELD 🛡️");
-        title.setTextColor(Color.parseColor("#FF3366"));
-        title.setTextSize(16f);
-        title.setTypeface(null, Typeface.BOLD);
-        title.setGravity(Gravity.CENTER);
-        card.addView(title);
-
-        // Threat Info
+        // Threat Info (Formatted exactly as requested)
         TextView verdict = new TextView(this);
-        verdict.setText("THREAT: " + result.verdict);
-        verdict.setTextColor(Color.parseColor("#FFCC00"));
+        verdict.setText(translatedVerdict + "\nConfidence: " + result.confidence + "%");
+        verdict.setTextColor(Color.parseColor("#00E5FF"));
         verdict.setTextSize(14f);
-        verdict.setPadding(0, 10, 0, 10);
+        verdict.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
+        verdict.setPadding(0, 0, 0, 20);
         card.addView(verdict);
 
         TextView reasons = new TextView(this);
-        reasons.setText(String.join("\n• ", result.reasons));
-        reasons.setTextColor(Color.parseColor("#AABBCC"));
+        reasons.setText(String.join("\n", result.reasons));
+        reasons.setTextColor(Color.parseColor("#00FF41")); // Terminal Green
         reasons.setTextSize(12f);
+        reasons.setTypeface(Typeface.MONOSPACE);
+        reasons.setPadding(0, 0, 0, 20);
         card.addView(reasons);
 
         // Dismiss Button
         Button btn = new Button(this);
-        btn.setText("DISMISS ALARM");
-        btn.setBackgroundColor(Color.parseColor("#331111"));
-        btn.setTextColor(Color.parseColor("#FF3366"));
+        btn.setText(translatedClose);
+        android.graphics.drawable.GradientDrawable bgd = new android.graphics.drawable.GradientDrawable();
+        bgd.setColor(Color.parseColor("#FF2A5F"));
+        bgd.setCornerRadius(0f);
+        btn.setBackground(bgd);
+        btn.setTextColor(Color.WHITE);
+        btn.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
         btn.setOnClickListener(v -> {
             wm.removeView(card);
             isOverlayVisible = false;
         });
+        
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        btnParams.setMargins(0, 20, 0, 0);
+        btn.setLayoutParams(btnParams);
         card.addView(btn);
 
         wm.addView(card, params);

@@ -9,7 +9,7 @@ if exist .git\index.lock del /f .git\index.lock
 
 git rm --cached push.bat CleanBuild.bat FixGit.bat run_ai.bat 2>nul
 git add .
-git commit -m "docs: add project README and progress tracking"
+git commit -m "fix: resolve compilation error in MainActivity after UI overhaul"
 
 :: Using autostash to prevent rebase conflicts
 git pull origin main --rebase --autostash
